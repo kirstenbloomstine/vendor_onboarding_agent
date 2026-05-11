@@ -16,16 +16,9 @@ pip install -r requirements.txt
 
 Requires Python 3.10+.
 
-### 2. Set your Groq API key
+### 2. Get a Groq API key
 
-Get a free key at https://console.groq.com, then copy the example env file and fill it in:
-
-```bash
-cp .env.example .env
-# then edit .env and set GROQ_API_KEY=gsk_...
-```
-
-Or enter the key directly in the Streamlit sidebar at runtime.
+Get a free key at https://console.groq.com and paste it into the Streamlit sidebar when the app loads.
 
 ### 3. Run the app
 
@@ -55,7 +48,6 @@ vendor_onboarding_agent/
 ├── tools.py          # Deterministic policy tools (finance, legal, security checks)
 ├── data_loader.py    # Reads .xlsx, .csv, .pdf, .txt, .md case files
 ├── requirements.txt
-├── .env.example
 └── README.md
 
 ../Candidate_package/
@@ -107,55 +99,4 @@ vendor_onboarding_agent/
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Key design decisions
-
-| Decision | Choice | Rationale |
-|---|---|---|
-| LLM framework | Raw Groq SDK (OpenAI-compatible) | Cleaner tool-use loop; no hidden abstraction; free tier available |
-| Policy enforcement | Deterministic Python tools | Rules are unambiguous; LLM handles synthesis and language |
-| UI / deployment | Streamlit | Zero-infrastructure web app; runs locally or on Streamlit Cloud |
-| HITL | Approval buttons in UI | All external actions gated; cannot be bypassed programmatically |
-| Output format | Structured JSON | Parseable by downstream systems; consistent schema |
-
----
-
-## How to Productionize
-
-### 1. Data ingestion
-Replace file-based case loading with an API intake form (e.g. Typeform → webhook
-→ normalized JSON) or a CRM/ERP integration. Parse attached documents
-server-side with a document intelligence service (e.g. AWS Textract, Azure
-Document Intelligence) for robust PDF/image extraction.
-
-### 2. Persistence
-Store evaluations and tool-call traces in a database (Postgres + JSONB or
-a document store).  Add an audit log table for HITL decisions (who approved,
-when, what was changed).
-
-### 3. Authentication & RBAC
-Gate the UI behind SSO (SAML/OIDC).  Implement role-based access: Procurement
-owners can approve; Finance can only view finance sections; Legal can comment
-but not close.
-
-### 4. Async processing
-Move the agent invocation off the request thread into a job queue (Celery,
-AWS SQS) so large cases don't block the UI.  Push status updates to the
-frontend via WebSocket or polling.
-
-### 5. Tool expansion
-- Connect `lookup_vendor_register` to the live ERP/P2P system (Coupa, SAP Ariba).
-- Connect `lookup_budget` to the live FP&A system.
-- Add a `create_jira_ticket` tool for auto-routing to Legal/Security queues.
-- Add a `send_email_draft` tool that fires only after human approval (HITL flag
-  checked server-side, not just client-side).
-
-### 6. LLM governance
-- Pin model version; test new versions before promoting.
-- Log all prompts and responses for compliance review.
-- Add an evaluation harness with golden-answer test cases (the three provided
-  cases make a good starting set) to catch regressions.
-
-### 7. Monitoring & alerting
-Track per-case latency, tool error rates, and approval outcomes.
-Alert on blocking-issue rate spikes (may indicate a policy change is needed)
-and on high agent-error rates (may indicate a model or data-quality issue).
+Note: This project with the help of Claude Code.
