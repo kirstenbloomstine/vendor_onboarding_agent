@@ -60,7 +60,7 @@ vendor_onboarding_agent/
 
 ## Architecture Note
 
-This design could be approached a few ways. In a scenario with complex, evolving, policy, a RAG pipeline where all policy docs are embedded into ChromaDB would be a better approach. However, given the size of this dataset, adding the needed information into the prompt worked better.
+This design could be approached a few ways. In a scenario with complex, evolving, policy, a RAG pipeline where all policy docs are embedded into ChromaDB would be a better approach. However, given the size of this dataset, adding the needed information into the prompt is the most straightforward and suited to this problem.
 
 In the agent loop, each tool is called sequentially. While it could be justified to have the LLM decide to skip certain tool calls based on findings, for auditability and transparency here, it's called tool-by-tool.
 
