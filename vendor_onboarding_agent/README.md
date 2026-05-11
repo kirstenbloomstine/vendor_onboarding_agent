@@ -16,13 +16,13 @@ pip install -r requirements.txt
 
 Requires Python 3.10+.
 
-### 2. Set your Anthropic API key
+### 2. Set your Groq API key
 
-Copy the example env file and fill in your key:
+Get a free key at https://console.groq.com, then copy the example env file and fill it in:
 
 ```bash
 cp .env.example .env
-# then edit .env and set ANTHROPIC_API_KEY=sk-ant-...
+# then edit .env and set GROQ_API_KEY=gsk_...
 ```
 
 Or enter the key directly in the Streamlit sidebar at runtime.
@@ -51,7 +51,7 @@ The app will open at `http://localhost:8501`.
 ```
 vendor_onboarding_agent/
 ├── app.py            # Streamlit UI — case selector, tabs, HITL approval
-├── agent.py          # Anthropic tool-use agent loop + system prompt
+├── agent.py          # Groq tool-use agent loop + system prompt
 ├── tools.py          # Deterministic policy tools (finance, legal, security checks)
 ├── data_loader.py    # Reads .xlsx, .csv, .pdf, .txt, .md case files
 ├── requirements.txt
@@ -60,7 +60,7 @@ vendor_onboarding_agent/
 
 ../Candidate_package/
 ├── cases/            # Three synthetic vendor onboarding cases
-├── docs/             # Six internal policy documents (loaded into system prompt)
+├── docs/             # Six internal policy documents (injected into first user message)
 └── tools/            # vendor_register.csv, budget_lookup.csv
 ```
 
@@ -78,10 +78,11 @@ vendor_onboarding_agent/
 ┌──────────────────────────────────────────────────────────────┐
 │                  Agent Loop (agent.py)                       │
 │                                                              │
-│  System prompt embeds 6 policy docs as authoritative text    │
+│  Policies injected into first user message (keeps system     │
+│  prompt short to prevent Llama XML-format fallback)          │
 │                                                              │
-│  Claude (claude-sonnet-4-6) ◄──────────────────────────────┐ │
-│        │ tool_use request                                   │ │
+│  Groq / llama-3.3-70b-versatile ◄─────────────────────────┐ │
+│        │ tool_call request (OpenAI-compatible JSON)         │ │
 │        ▼                                                    │ │
 │  dispatch_tool() ──► tools.py (deterministic)               │ │
 │    • lookup_vendor_register   (vendor_register.csv)         │ │
@@ -91,9 +92,9 @@ vendor_onboarding_agent/
 │    • check_legal_review_requirements                        │ │
 │    • check_security_review_requirements                     │ │
 │        │ tool_result JSON                                   │ │
-│        └────────────────────────────────────────────────────┘ │
+│        └───────────────────────────────────────────────────┘ │
 │                                                              │
-│  Claude synthesises all results → outputs JSON report        │
+│  Groq synthesises all results → outputs JSON report          │
 └──────────────────────────────────────────────────────────────┘
                          │ structured JSON
                          ▼
@@ -110,7 +111,7 @@ vendor_onboarding_agent/
 
 | Decision | Choice | Rationale |
 |---|---|---|
-| LLM framework | Raw Anthropic SDK | Cleaner tool-use loop; no hidden abstraction |
+| LLM framework | Raw Groq SDK (OpenAI-compatible) | Cleaner tool-use loop; no hidden abstraction; free tier available |
 | Policy enforcement | Deterministic Python tools | Rules are unambiguous; LLM handles synthesis and language |
 | UI / deployment | Streamlit | Zero-infrastructure web app; runs locally or on Streamlit Cloud |
 | HITL | Approval buttons in UI | All external actions gated; cannot be bypassed programmatically |
