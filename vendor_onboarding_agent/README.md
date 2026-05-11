@@ -1,4 +1,4 @@
-# Vendor Onboarding Agent — Prototype
+# Vendor Onboarding Agent
 
 A lightweight AI agent that reviews vendor onboarding packages and produces
 structured procurement recommendations for a human Procurement Owner.
@@ -60,6 +60,20 @@ vendor_onboarding_agent/
 
 ## Architecture Note
 
+This design could be approached a few ways. In a scenario with complex, evolving, policy, a RAG pipeline where all policy docs are embedded into ChromaDB would be a better approach. However, given the size of this dataset, adding the needed information into the prompt worked better.
+
+In the agent loop, each tool is called sequentially. While it could be justified to have the LLM decide to skip certain tool calls based on findings, for auditability and transparency here, it's called tool-by-tool.
+
+## Production
+
+To productionalize this, I would consider the RAG design element depending on future policy changes.
+
+In terms of data, I would connect the vendor data to the system of record (Procurement system, etc) to ensure current data is being used. Similarly for budget lookup.
+
+I would ensure robust testing is done with cases that had already been evaluated by sourcing, to see if the agent produced the same results.
+
+I'd also need to use a production LLM with higher rate limits and ensure failure handling and retry mechanisms were in place. Similarly, an audit trail is important. In the case of an incorrect approval, it's important to see what tools were called and what was missed.
+
 ```
 ┌──────────────────────────────────────────────────────────────┐
 │                    Streamlit UI (app.py)                     │
@@ -99,4 +113,5 @@ vendor_onboarding_agent/
 └──────────────────────────────────────────────────────────────┘
 ```
 
-Note: This project with the help of Claude Code.
+Note: This project produced with the help of Claude Code.
+
